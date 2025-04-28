@@ -1,121 +1,112 @@
--- Variables de configuración
-local player = game.Players.LocalPlayer
-local backpack = player.Backpack
-local mouse = player:GetMouse()
-local leaderstats = player:WaitForChild("leaderstats")
-local magicBagName = "MagicBag"
-local moneyValue = leaderstats:WaitForChild("Money")
+-- Crear el GUI del menú
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
 
--- Variables de estado
-local isAutofarming = false
-local isAutoworking = false
-local isNoClipping = false
+-- Marco del menú
+local menuFrame = Instance.new("Frame")
+menuFrame.Size = UDim2.new(0, 200, 0, 400)  -- Tamaño del menú (ancho: 200px, alto: 400px)
+menuFrame.Position = UDim2.new(0, 50, 0, 50)  -- Posición en la pantalla
+menuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Color de fondo negro
+menuFrame.BackgroundTransparency = 0.5  -- Transparencia del fondo
+menuFrame.BorderSizePixel = 2  -- Bordes del marco
 
--- Crear la interfaz de usuario (UI)
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player.PlayerGui
+-- Agregar desplazamiento
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, 0, 1, 0)  -- Llenar todo el marco
+scrollFrame.Position = UDim2.new(0, 0, 0, 0)
+scrollFrame.Parent = menuFrame
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)  -- Tamaño de la tela para desplazamiento
+scrollFrame.ScrollBarThickness = 10  -- Grosor de la barra de desplazamiento
 
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 200, 0, 300)
-mainFrame.Position = UDim2.new(0, 10, 0, 10)
-mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-mainFrame.Parent = screenGui
+-- Fondo de las opciones
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, 0, 1, 1000)  -- Opciones dentro del scroll
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = scrollFrame
 
--- Crear botones
-local autofarmButton = Instance.new("TextButton")
-autofarmButton.Size = UDim2.new(0, 180, 0, 40)
-autofarmButton.Position = UDim2.new(0, 10, 0, 10)
-autofarmButton.Text = "Toggle Autofarm"
-autofarmButton.BackgroundColor3 = Color3.fromRGB(0, 128, 0)
-autofarmButton.Parent = mainFrame
+-- Función para crear un botón
+function createButton(label, position, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 0, 50)  -- Tamaño del botón
+    button.Position = UDim2.new(0, 0, 0, position)  -- Posición del botón
+    button.Text = label
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 18
+    button.Parent = contentFrame
+    button.MouseButton1Click:Connect(callback)  -- Llama a la función cuando el botón es presionado
+end
 
-local autoworkButton = Instance.new("TextButton")
-autoworkButton.Size = UDim2.new(0, 180, 0, 40)
-autoworkButton.Position = UDim2.new(0, 10, 0, 60)
-autoworkButton.Text = "Toggle Autowork"
-autoworkButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
-autoworkButton.Parent = mainFrame
+-- Opciones del autofarm
+local autofarmEnabled = true
+local farmSpeed = 1  -- Velocidad de recolección
+local collectionLimit = 100  -- Límite de recolección de bolsas mágicas
+local collectedBags = 0  -- Contador de bolsas recolectadas
 
-local noClipButton = Instance.new("TextButton")
-noClipButton.Size = UDim2.new(0, 180, 0, 40)
-noClipButton.Position = UDim2.new(0, 10, 0, 110)
-noClipButton.Text = "Toggle No-Clip"
-noClipButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-noClipButton.Parent = mainFrame
-
--- Funciones de comportamiento
+-- Función para iniciar/detener el autofarm
 function toggleAutofarm()
-    isAutofarming = not isAutofarming
-    if isAutofarming then
-        autofarmButton.Text = "Autofarm: ON"
-        startAutofarm()
+    autofarmEnabled = not autofarmEnabled
+    if autofarmEnabled then
+        print("Autofarm activado.")
     else
-        autofarmButton.Text = "Toggle Autofarm"
+        print("Autofarm desactivado.")
     end
 end
 
-function toggleAutowork()
-    isAutoworking = not isAutoworking
-    if isAutoworking then
-        autoworkButton.Text = "Autowork: ON"
-        startAutowork()
-    else
-        autoworkButton.Text = "Toggle Autowork"
+-- Función para ajustar la velocidad de recolección
+function adjustFarmSpeed(speed)
+    farmSpeed = speed
+    print("Velocidad de autofarm ajustada a: " .. farmSpeed)
+end
+
+-- Función para establecer un límite de recolección
+function setCollectionLimit(limit)
+    collectionLimit = limit
+    print("Límite de recolección ajustado a: " .. collectionLimit)
+end
+
+-- Función para recolectar la bolsa mágica
+local magicBag = game.Workspace.MagicBag  -- Ajusta la ruta de la bolsa mágica
+function collectMagicBag()
+    if magicBag and magicBag:FindFirstChild("Touch") then
+        magicBag.Touch:Fire()
+        print("Coleccionada la bolsa mágica.")
+        collectedBags = collectedBags + 1
     end
 end
 
-function toggleNoClip()
-    isNoClipping = not isNoClipping
-    if isNoClipping then
-        noClipButton.Text = "No-Clip: ON"
-        enableNoClip()
-    else
-        noClipButton.Text = "Toggle No-Clip"
-        disableNoClip()
+-- Función para vender la bolsa mágica automáticamente
+function sellMagicBag()
+    print("Vendiendo la bolsa mágica.")
+    -- Aquí iría la lógica de venta
+end
+
+-- Función de autofarm con límite y velocidad
+function autofarm()
+    while autofarmEnabled and collectedBags < collectionLimit do
+        wait(farmSpeed)
+        collectMagicBag()  -- Recoge la bolsa mágica
+        sellMagicBag()  -- Vende la bolsa mágica
+    end
+    if collectedBags >= collectionLimit then
+        print("Límite de recolección alcanzado.")
+        toggleAutofarm()  -- Detiene el autofarm cuando se alcanza el límite
     end
 end
 
--- Función para autofarmear
-function startAutofarm()
-    while isAutofarming do
-        local magicBag = backpack:FindFirstChild(magicBagName)
-        if magicBag then
-            -- Agregar lógica para recolectar objetos automáticamente de la bolsa mágica
-            print("Recolectando recursos de la bolsa mágica...")
-            -- Aquí podrías agregar más detalles de la recolección (por ejemplo, extraer recursos específicos).
-            wait(2) -- Recolecta cada 2 segundos
-        else
-            print("No se ha encontrado la bolsa mágica.")
-            wait(1)
-        end
+-- Crear botones para controlar el menú
+createButton("Activar/Desactivar Autofarm", 0, toggleAutofarm)
+createButton("Ajustar Velocidad de Autofarm (1)", 60, function() adjustFarmSpeed(1) end)
+createButton("Ajustar Velocidad de Autofarm (0.5)", 120, function() adjustFarmSpeed(0.5) end)
+createButton("Establecer Límite de Recolección (100)", 180, function() setCollectionLimit(100) end)
+createButton("Mostrar/Ocultar Menú", 240, function()
+    menuFrame.Visible = not menuFrame.Visible
+end)
+
+-- Inicia el autofarm si está habilitado
+while true do
+    if autofarmEnabled then
+        autofarm()
     end
+    wait(1)
 end
-
--- Función para trabajar automáticamente
-function startAutowork()
-    while isAutoworking do
-        -- Aquí iría la lógica para trabajar automáticamente, por ejemplo, interactuar con NPCs de trabajo
-        print("Trabajando automáticamente...")
-        wait(5) -- Esperar 5 segundos entre trabajos
-    end
-end
-
--- Funciones para No-Clip (traspasar paredes)
-function enableNoClip()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
-    humanoid.PlatformStand = true
-    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-end
-
-function disableNoClip()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
-    humanoid.PlatformStand = false
-    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-end
-
--- Conectar los botones con las funciones
-autofarmButton.MouseButton1Click:Connect(toggleAutofarm)
-autoworkButton.MouseButton1Click:Connect(toggleAutowork)
-noClipButton.MouseButton1Click:Connect(toggleNoClip)
